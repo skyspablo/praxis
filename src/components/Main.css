@@ -1,0 +1,109 @@
+body {
+    background: #1F335D;
+    color: #333;
+}
+
+#loader {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, .5);
+    z-index: 1;
+    display: block;
+}
+
+.lds-dual-ring {
+    position: absolute;
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin-left: -40px;
+    margin-top: -60px;
+    left: 50%;
+    top: 50%;
+}
+
+.lds-dual-ring:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    border-color: #fff transparent #fff transparent;
+
+    animation: lds-dual-ring 1.2s linear infinite;
+}
+
+@keyframes lds-dual-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.app-container {
+    display: grid;
+    grid-template-columns: 0.4fr 1.6fr;
+    grid-template-rows: 1fr;
+    gap: 2px;
+    grid-template-areas: "nav main";
+}
+
+nav#mainNav {
+    background: white;
+    min-height: 100vh;
+}
+
+#mainNav h2 {
+    font-size: 1.3rem;
+    margin: 0.55rem 1rem;
+}
+
+#mainNav h2 svg {
+    color: #666;
+    font-size: .75rem;
+    position: relative;
+    top: -.10rem;
+}
+
+#mainNav ul {
+    padding: 0;
+    margin: 0;
+}
+
+
+#mainNav ul li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#mainNav ul li a {
+    position: relative;
+    left: 2px;
+    display: block;
+    list-style: none;
+    background: #666;
+    box-sizing: border-box;
+    margin: .1rem auto;
+    padding: 6px 24px;
+    color:white;
+    text-decoration: none;
+    transition: ease all .3s;
+}
+
+#mainNav ul li a:hover, #mainNav ul li a.active {
+    box-shadow: 0 0 6px rgba(0,0,0,.8);
+    background: #333;
+    left: 0px;
+}
+
+.main-content {
+    box-sizing: border-box;
+    //padding: 20px;
+    background: #fafafa;
+}
