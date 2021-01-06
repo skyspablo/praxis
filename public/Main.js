@@ -2,7 +2,7 @@ const {User, SellDetails, Customer, Category, Currency, Product, Sell, DBModel} 
 
 const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
-
+const { autoUpdater } = require('electron-updater');
 //const baseUrl = "http://localhost:3000/";
 const baseUrl = `file://${path.join(__dirname, '../build/index.html')}`;
 
@@ -18,6 +18,24 @@ function init() {
     win.setMenuBarVisibility(false)
     win.loadURL(baseUrl)
 
+    win.once('ready-to-show', () => {
+        autoUpdater.checkForUpdatesAndNotify();
+    });
+
+    autoUpdater.on('update-available', () => {
+        win.webContents.send('update_available');
+    });
+    autoUpdater.on('update-downloaded', () => {
+        win.webContents.send('update_downloaded');
+    });
+
+    ipcMain.on('restart_app', () => {
+        autoUpdater.quitAndInstall();
+    });
+
+    ipcMain.on('app_version', (event) => {
+        event.sender.send('app_version', { version: app.getVersion() });
+    });
 
     const listenerResize = (event, {width, height}) => {
         if (!win.isFullScreen()) {

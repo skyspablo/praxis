@@ -14,7 +14,7 @@ const NewProduct = () => {
 
 
     useEffect(() => {
-            window.document.title = 'Nuevo Producto'
+            //window.document.title = 'Nuevo Producto'
 
             invokeElectron({channel: 'get-categorias'}).then((r) => {
 

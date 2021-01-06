@@ -15,7 +15,7 @@ const Login = () => {
 
     useSendElectron({chanel: 'resize', args: {width: 500, height: 360}});
     useEffect(() => {
-        window.document.title = 'Praxis - Ingresar'
+        //window.document.title = 'Praxis - Ingresar'
 
         let loggedUser = localStorage.getItem('userId');
 
