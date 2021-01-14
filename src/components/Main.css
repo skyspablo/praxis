@@ -1,14 +1,20 @@
 body {
-    background: #1F335D;
+    background: #1f335d;
     color: #333;
 }
 
+.praxis-dark{
+    background: hsl(221,67%,15%);
+    color:white;
+}
+
+
 #loader {
     position: fixed;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, .5);
-    z-index: 1;
+    z-index: 2;
     display: block;
 }
 
@@ -17,10 +23,8 @@ body {
     display: block;
     width: 80px;
     height: 80px;
-    margin-left: -40px;
-    margin-top: -60px;
-    left: 50%;
-    top: 50%;
+    left: 0;
+    top:30px;
 }
 
 .lds-dual-ring:after {
@@ -53,18 +57,43 @@ body {
     grid-template-areas: "nav main";
 }
 
+/* width */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #2a4580;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb {
+    background: #1f335d;
+}
 nav#mainNav {
-    background: white;
-    min-height: 100vh;
+    background: hsl(221,67%,15%);
+    height: 100vh;
+    overflow: hidden;
+    overflow-y: auto;
+    grid-area: nav;
 }
 
 #mainNav h2 {
-    font-size: 1.3rem;
-    margin: 0.55rem 1rem;
+    font-size: 1.0rem;
+    padding: 1rem 1rem;
+    margin:5px 0;
+    color: white;
+
 }
 
 #mainNav h2 svg {
-    color: #666;
+    color: white;
     font-size: .75rem;
     position: relative;
     top: -.10rem;
@@ -84,26 +113,63 @@ nav#mainNav {
 
 #mainNav ul li a {
     position: relative;
-    left: 2px;
-    display: block;
     list-style: none;
-    background: #666;
-    box-sizing: border-box;
-    margin: .1rem auto;
-    padding: 6px 24px;
+    background: hsl(221,67%,15%);
     color:white;
     text-decoration: none;
-    transition: ease all .3s;
+
+    padding:10px 14px;
+    font-size: 1rem;
+    text-align: left;
+    display: block;
+
+
 }
 
-#mainNav ul li a:hover, #mainNav ul li a.active {
-    box-shadow: 0 0 6px rgba(0,0,0,.8);
-    background: #333;
-    left: 0px;
+#mainNav ul li a svg{
+  margin: 0 .5rem;
+}
+
+#mainNav ul li a:hover{
+    background: hsl(221,67%,40%);
+}
+#mainNav ul li a.active{
+    border-left:4px solid hsl(221,67%,40%);
+    display: block;
+    margin-left: 0;
+    padding:10px 10px;
 }
 
 .main-content {
     box-sizing: border-box;
-    //padding: 20px;
     background: #fafafa;
+    grid-area: main;
+    position: relative;
+
+}
+.btn-setting{
+    position: absolute;
+    z-index: 2;
+    bottom: 20px;
+    right:20px;
+    opacity: .3;
+    transition: ease all .3s;
+}
+.btn-setting:hover{
+    opacity: 1;
+}
+.setting-container{
+    min-height: 100vh;
+    background: white;
+}
+
+.pagination-footer{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    text-align: center;
+    background: hsl(221,67%,15%);
+    padding: 3px 0;
 }

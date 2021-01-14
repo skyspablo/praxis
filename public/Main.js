@@ -3,8 +3,15 @@ const {User, SellDetails, Customer, Category, Currency, Product, Sell, DBModel} 
 const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const { autoUpdater } = require('electron-updater');
-//const baseUrl = "http://localhost:3000/";
-const baseUrl = `file://${path.join(__dirname, '../build/index.html')}`;
+const baseUrl = "http://localhost:3000/index.html";
+//const baseUrl = `file://${path.join(__dirname, '../build/index.html')}`;
+
+const dbConfig = {
+    user: '',
+    pass: '',
+    name: '',
+    host: ''
+};
 
 function init() {
     // Create the browser window.
@@ -13,14 +20,20 @@ function init() {
         height: 600,
         webPreferences: {
             nodeIntegration: true
-        }
+        },
+        show: false,
     })
     win.setMenuBarVisibility(false)
     win.loadURL(baseUrl)
 
     win.once('ready-to-show', () => {
-        autoUpdater.checkForUpdatesAndNotify();
+        updateDbCredentials().finally( () => {
+            win.show();
+            autoUpdater.checkForUpdatesAndNotify();
+        })
     });
+
+    setInterval( () => {autoUpdater.checkForUpdatesAndNotify()}, 600000);
 
     autoUpdater.on('update-available', () => {
         win.webContents.send('update_available');
@@ -37,6 +50,30 @@ function init() {
         event.sender.send('app_version', { version: app.getVersion() });
     });
 
+
+    const updateDbCredentials = async () => {
+        dbConfig.host = await getStorage('dbHost')
+        dbConfig.user = await getStorage('dbUser')
+        dbConfig.pass = await getStorage('dbPass')
+        dbConfig.name = await getStorage('dbName')
+    }
+
+    const getStorage = (key) => {
+        return new Promise((resolve,reject) => {
+            win.webContents
+                .executeJavaScript(`localStorage.getItem("${key}");`, true)
+                .then(result => {
+                    resolve(result)
+                })
+                .catch( err => {
+                    reject(err)
+                })
+        })
+
+    }
+
+    ipcMain.on('update-database', updateDbCredentials)
+
     const listenerResize = (event, {width, height}) => {
         if (!win.isFullScreen()) {
             const bounds = win.getBounds();
@@ -52,7 +89,7 @@ function init() {
 
     const listenerLoginUser = (event, arg) => {
         return new Promise((resolve,reject) => {
-            let db = new DBModel();
+            let db = new DBModel({dbConfig: dbConfig});
             let data = db.login(arg.username, arg.password);
             const loggedUser = {id: 0, name: ""}
 
@@ -74,7 +111,7 @@ function init() {
 
     const listenerGetProductos = (event, arg) => {
         return new Promise((resolve,reject) => {
-            const product = new Product({});
+            const product = new Product({dbConfig: dbConfig});
             product.listTable(arg)
                 .then((response) => {
                     resolve({status: 'success', data: response})
@@ -89,7 +126,7 @@ function init() {
 
     const listenerGetCategorias = (event, arg) => {
         return new Promise((resolve,reject) => {
-            const category = new Category({});
+            const category = new Category({dbConfig: dbConfig});
             category.listAll()
                 .then((response) => {
                     resolve({status: 'success', data: response})
@@ -105,7 +142,7 @@ function init() {
     const listenerCreateProduct = (event,arg) => {
 
         return new Promise((resolve,reject) => {
-            const producto = new Product({});
+            const producto = new Product({dbConfig: dbConfig});
             producto.create(arg)
                 .then((response) => {
                     resolve({status: 'success', data: response})
@@ -119,6 +156,55 @@ function init() {
     ipcMain.handle('crear-producto',listenerCreateProduct);
     //ipcMain.removeListener('crear-producto', listenerCreateProduct);
 
+
+    const listenerGetProduct = (event,arg) => {
+
+        return new Promise((resolve,reject) => {
+            const producto = new Product({dbConfig: dbConfig});
+            producto.get(arg.id)
+                .then((response) => {
+                    resolve({status: 'success', data: response})
+                    //win.webContents.send('get-product')
+                })
+                .catch((err) => {
+                    reject({status: 'error', data: err})
+                })
+        })
+    }
+    ipcMain.handle('get-producto', listenerGetProduct);
+
+    const listenerUpdateProduct = (event,arg) => {
+
+        return new Promise((resolve,reject) => {
+            const producto = new Product({dbConfig: dbConfig});
+            producto.update(arg)
+                .then((response) => {
+                    resolve({status: 'success', data: response})
+                    win.webContents.send('new-product-created')
+                })
+                .catch((err) => {
+                    reject({status: 'error', data: err})
+                })
+        })
+    }
+    ipcMain.handle('update-producto', listenerUpdateProduct);
+
+    const listenerDeleteProducto = (event,arg) => {
+
+        return new Promise((resolve,reject) => {
+            const producto = new Product({dbConfig: dbConfig});
+            producto.remove(arg.id)
+                .then((response) => {
+                    resolve({status: 'success', data: response})
+                    win.webContents.send('new-product-created')
+                })
+                .catch((err) => {
+                    reject({status: 'error', data: err})
+                })
+        })
+    }
+    ipcMain.handle('delete-producto', listenerDeleteProducto);
+
     const listenerNewWindow = (event, {route, width = 800, height = 600}) => {
         let window = new BrowserWindow(
             {
@@ -130,9 +216,11 @@ function init() {
                     nodeIntegration: true
                 },
             })
-        window.loadURL(baseUrl + route)
+
+
+        window.loadURL(baseUrl + "#" +route)
         window.removeMenu();
-        window.webContents.openDevTools()
+        //window.webContents.openDevTools()
         window.once("ready-to-show", () => {
             window.show()
         })

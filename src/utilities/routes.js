@@ -6,5 +6,6 @@ export const routePath = {
     reporteVentas: "/reporte-ventas",
     clientes: "/clientes",
     usuarios: "/usuarios",
+    settings: "/settings",
     login: "/login"
 }

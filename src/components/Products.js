@@ -27,12 +27,24 @@ const Products = () => {
         sendElectron({chanel: 'new-window', args: {route: name}})
     }
 
+    const handleDelete = (name,id) => {
+        const sure = window.confirm(`Está seguro que desea eliminar el producto ${name}?`);
+
+        setIsLoading(true);
+        if(sure){
+            invokeElectron({channel: 'delete-producto', args: {id:id}}).then((r) => {
+                alert('Producto eliminado');
+            }).catch(err => console.error(err))
+                .finally(() => setIsLoading(false))
+        }
+    }
+
     const ipcListener = () => {
         setIsLoading(true)
         invokeElectron({channel: "get-productos", args: {page: pagina, search: search}})
             .then((response) => {
                 if (response.isError === false) {
-                    setPagina(response.data.data.current_page)
+                    //setPagina(response.data.data.current_page)
                     setPaginas(response.data.data.last_page);
                     setSearch(search);
                     setProductos(response.data.data.data ?? []);
@@ -48,25 +60,25 @@ const Products = () => {
     const last_pagination = start_pagination === 1 ? 10 : pagina + 5;
 
     if(start_pagination > 1){
-        pagination.push( <button key={"pagination-previous"} className="btn btn-secondary mx-2" onClick={ () => setPagina(1)}>&lt;</button> )
+        pagination.push( <button key={"pagination-previous"} className="btn btn-light mx-2" onClick={ () => setPagina(1)}>&lt;</button> )
     }
 
     for (let i = start_pagination; i < last_pagination && i <= paginas; i++){
         if(i === pagina){
-            pagination.push( <button key={"pagination-"+i} className="btn btn-primary mx-2" onClick={ () => setPagina(i)}>{i}</button> )
-        }else{
             pagination.push( <button key={"pagination-"+i} className="btn btn-secondary mx-2" onClick={ () => setPagina(i)}>{i}</button> )
+        }else{
+            pagination.push( <button key={"pagination-"+i} className="btn btn-light mx-2" onClick={ () => setPagina(i)}>{i}</button> )
         }
     }
 
     if(pagina < paginas){
-        pagination.push( <button key={"pagination-next"} className="btn btn-secondary mx-2" onClick={ () => setPagina(paginas)}>&gt;</button> )
+        pagination.push( <button key={"pagination-next"} className="btn btn-light mx-2" onClick={ () => setPagina(paginas)}>&gt;</button> )
     }
 
     return (
         <>
             {isLoading && <Loader/>}
-            <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+            <nav className="navbar navbar-expand-lg navbar-dark praxis-dark">
                 <span className="navbar-brand">Productos</span>
                 <div className="collapse navbar-collapse">
                     <ul className="navbar-nav mr-auto"/>
@@ -77,7 +89,7 @@ const Products = () => {
                     }}>Buscar</button>
 
                 </div>
-                <button className="btn btn-success mx-2 " type="button" onClick={() => openNewTab('nuevo-producto')}>
+                <button className="btn btn-success mx-2 " type="button" onClick={() => openNewTab('/nuevo-producto')}>
                     <FontAwesomeIcon icon={faPlus}/> Agregar Producto
                 </button>
             </nav>
@@ -106,15 +118,15 @@ const Products = () => {
                             <td>{producto.existence}</td>
                             <td>{producto.active}</td>
                             <td>
-                                <button className="btn btn-sm mx-1 btn-primary"><FontAwesomeIcon icon={faPen} /></button>
-                                <button className="btn btn-sm mx-1 btn-danger"><FontAwesomeIcon icon={faTrash} /></button>
+                                <button className="btn btn-sm mx-1 btn-primary" onClick={ () => { openNewTab('actualizar-producto/' + producto.id) } }><FontAwesomeIcon icon={faPen} /></button>
+                                <button className="btn btn-sm mx-1 btn-danger" onClick={ () => handleDelete(producto.name, producto.id) } ><FontAwesomeIcon icon={faTrash} /></button>
                             </td>
                         </tr>
                     })}
                     </tbody>
                 </table>
 
-                <div className="text-center mt-5">
+                <div className="pagination-footer">
                     {pagination}
                 </div>
             </div>

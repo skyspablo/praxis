@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react'
-import {invokeElectron, useSendElectron} from "../utilities/talkElectron";
+import {invokeElectron, sendElectron, useSendElectron} from "../utilities/talkElectron";
 import {Button, Card, Col, Container, Row} from "react-bootstrap";
 import {useHistory} from "react-router-dom";
 import Loader from "./Loader";
 import {routePath as path} from "../utilities/routes"
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faChartLine, faCogs} from "@fortawesome/free-solid-svg-icons";
 const Login = () => {
-    console.log("estoy en login")
+   // console.log("estoy en login")
     const
         [userName, setUserName] = useState('test'),
         [userPass, setUserPass] = useState('admin'),
@@ -44,7 +46,9 @@ const Login = () => {
             .finally( () => setIsLoading(false))
     }
 
-
+    const openNewTab = (name) => {
+        sendElectron({chanel: 'new-window', args: {route: name}})
+    }
     return <>
         {isLoading && <Loader />}
         <Container>
@@ -80,6 +84,9 @@ const Login = () => {
                 </Col>
             </Row>
         </Container>
+        <button className="btn btn-secondary btn-sm btn-setting" onClick={ () => { openNewTab("/settings") }}>
+            <FontAwesomeIcon icon={faCogs} />
+        </button>
     </>
 }
 

@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {invokeElectron} from "../utilities/talkElectron";
 import Loader from "./Loader";
+import {useParams} from "react-router-dom";
 
 const NewProduct = () => {
     const
@@ -12,27 +13,53 @@ const NewProduct = () => {
         [existence, setExistence] = useState(1),
         [selectedCat, setSelectedCat] = useState('');
 
+    const {id} = useParams();
 
     useEffect(() => {
-            //window.document.title = 'Nuevo Producto'
 
             invokeElectron({channel: 'get-categorias'}).then((r) => {
-
                 setCategories(r.data.data)
             })
+
+
+            if(typeof id !== "undefined" && id !== undefined){
+                invokeElectron({channel: 'get-producto', args:{id:id}}).then((r) => {
+                   if(r.isError === false){
+                       const productData = r.data.data[0];
+                       setName(productData.name)
+                       setSku(productData.sku)
+                       setPrice(productData.price)
+                       setExistence(productData.existence)
+                       setSelectedCat(productData.category_id);
+                   }
+                })
+            }
+
         }
-        , [])
+        , [id])
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         setIsLoading(true);
-        invokeElectron({channel: 'crear-producto', args: {sku:sku,price:price,name:name,category_id:selectedCat,existence:existence}}).then((r) => {
-           // window.close();
-        }).catch(err => console.error(err))
-            .finally(() => setIsLoading(false))
+
+        if(id !== "undefined" && id !== undefined){
+            invokeElectron({channel: 'update-producto', args: {id:id,sku:sku,price:price,name:name,category_id:selectedCat,existence:existence}}).then((r) => {
+                // window.close();
+            }).catch(err => console.error(err))
+                .finally(() => setIsLoading(false))
+
+        }else{
+
+            invokeElectron({channel: 'crear-producto', args: {sku:sku,price:price,name:name,category_id:selectedCat,existence:existence}}).then((r) => {
+                // window.close();
+            }).catch(err => console.error(err))
+                .finally(() => setIsLoading(false))
+        }
+
 
     }
+
+
 
     return <>
         {isLoading && <Loader/>}

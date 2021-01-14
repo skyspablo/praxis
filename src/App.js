@@ -6,6 +6,8 @@ import Main from "./components/Main";
 import {routePath as path} from './utilities/routes'
 import Products from "./components/Products";
 import NewProduct from "./components/NewProduct";
+import Settings from "./components/Settings";
+import Home from "./components/Home";
 
 function App (){
 
@@ -59,18 +61,23 @@ function App (){
                     </Main>
                 </Route>
 
-                <Route exact path={path.home}>
-                    <Main>
-                        <h2>{path.home} {localStorage.getItem("userId")}</h2>
-                        <p>{currentURL}</p>
-                        <p>{pathname}</p>
-                    </Main>
-                </Route>
-
                 <Route exact path="/nuevo-producto">
                     <NewProduct />
                 </Route>
 
+                <Route exact path="/actualizar-producto/:id">
+                    <NewProduct />
+                </Route>
+
+                <Route exact path="/settings">
+                    <Settings />
+                </Route>
+
+                <Route exact path={path.home}>
+                    <Main>
+                        <Home />
+                    </Main>
+                </Route>
 
                 <Route exact path="*">
                     <h2>Error </h2>

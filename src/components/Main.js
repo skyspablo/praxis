@@ -1,12 +1,21 @@
 import React, {useEffect, useState} from 'react'
-import {useSendElectron} from "../utilities/talkElectron";
+import {sendElectron, useSendElectron} from "../utilities/talkElectron";
 import {Link, useHistory, useLocation} from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {faChartLine} from "@fortawesome/free-solid-svg-icons";
+import {
+    faCalculator,
+    faCartPlus,
+    faChartLine, faCogs,
+    faShoppingCart, faSignOutAlt, faSolarPanel,
+    faUpload,
+    faUser,
+    faUserAstronaut
+} from "@fortawesome/free-solid-svg-icons";
 import './Main.css'
 import {routePath } from "../utilities/routes";
+import {faDashcube} from "@fortawesome/free-brands-svg-icons";
 
 
 const Main = (props) => {
@@ -46,36 +55,37 @@ const NavBar = () => {
         <nav id="mainNav">
             <h2>Inicio</h2>
             <ul>
-                <li> <Link to={routePath.home} className={location.pathname === routePath.home ? 'active' : ''}>Escritorio</Link></li>
+                <li> <Link to={routePath.home} className={location.pathname === routePath.home ? 'active' : ''}><FontAwesomeIcon icon={faSolarPanel} /> Escritorio</Link></li>
             </ul>
             <h2>
                 Herramientas
             </h2>
             <ul>
-                <li> <Link to={routePath.puntoDeVenta} className={location.pathname === routePath.puntoDeVenta ? 'active' : ''}>Punto de Venta</Link> </li>
+                <li> <Link to={routePath.puntoDeVenta} className={location.pathname === routePath.puntoDeVenta ? 'active' : ''}><FontAwesomeIcon icon={faCalculator} /> Punto de Venta</Link> </li>
             </ul>
             <h2>
-                <FontAwesomeIcon icon={faChartLine} /> Ventas
+                Ventas
             </h2>
             <ul>
-                <li> <Link to={routePath.cargaDeProductos} className={location.pathname === routePath.cargaDeProductos ? 'active' : ''}>Cargar Producto</Link> </li>
-                <li> <Link to={routePath.editarVentas} className={location.pathname === routePath.editarVentas ? 'active' : ''}>Editar Ventas</Link> </li>
-                <li> <Link to={routePath.reporteVentas} className={location.pathname === routePath.reporteVentas ? 'active' : ''}>Reporte Ventas</Link> </li>
+                <li> <Link to={routePath.cargaDeProductos} className={location.pathname === routePath.cargaDeProductos ? 'active' : ''}><FontAwesomeIcon icon={faUpload} /> Cargar Producto</Link> </li>
+                <li> <Link to={routePath.editarVentas} className={location.pathname === routePath.editarVentas ? 'active' : ''}><FontAwesomeIcon icon={faShoppingCart} /> Editar Ventas</Link> </li>
+                <li>  <Link to={routePath.reporteVentas} className={location.pathname === routePath.reporteVentas ? 'active' : ''}><FontAwesomeIcon icon={faChartLine} /> Reporte Ventas</Link> </li>
             </ul>
 
             <h2>
                 Clientes
             </h2>
             <ul>
-                <li> <Link to={routePath.clientes} className={location.pathname === routePath.clientes ? 'active' : ''}>Clientes</Link> </li>
+                <li> <Link to={routePath.clientes} className={location.pathname === routePath.clientes ? 'active' : ''}><FontAwesomeIcon icon={faUser} /> Clientes</Link> </li>
             </ul>
 
             <h2>
                 Opciones
             </h2>
             <ul>
-                <li> <Link to={routePath.usuarios} className={location.pathname === routePath.usuarios ? 'active' : ''}>Usuarios</Link> </li>
-                <li> <a href="javascript:void(0)" onClick={ () => { logout() }}>Cerrar Sesión</a> </li>
+                <li> <Link to={routePath.usuarios} className={location.pathname === routePath.usuarios ? 'active' : ''}><FontAwesomeIcon icon={faUserAstronaut} /> Usuarios</Link> </li>
+                <li> <a href="javascript:void(0)" onClick={ () => { sendElectron({chanel: 'new-window', args: {route: "settings"}}) }}> <FontAwesomeIcon icon={faCogs} /> Configuraciones</a> </li>
+                <li> <a href="javascript:void(0)" onClick={ () => { logout() }}><FontAwesomeIcon icon={faSignOutAlt} />  Cerrar Sesión</a> </li>
             </ul>
 
         </nav>

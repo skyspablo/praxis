@@ -1,20 +1,32 @@
 class DBModel {
-    //knex
-    _db = require('knex')({
-        client: 'mysql',
-        connection: {
-            host: 'localhost',
-            user: 'root',
-            password: '',
-            database: 'praxis'
-        }
-    });
 
+    _db;
     _md5 = require('md5');
+
+    constructor(
+        {
+            dbConfig,
+        }) {
+        this._dbConfig = dbConfig;
+        this.init();
+    }
+
+    init(){
+        this._db = require('knex')({
+            client: 'mysql',
+            connection: {
+                host: this._dbConfig.host,
+                user: this._dbConfig.user,
+                password: this._dbConfig.pass,
+                database: this._dbConfig.name
+            }
+        });
+    }
 
     async login(username, password) {
         return new Promise((resolve, reject) => {
-            const mysql = new MySQL();
+            //console.log(this._dbConfig)
+            const mysql = new MySQL({dbConfig:this._dbConfig});
             mysql.query(`select * from users where username = '${username}' and password = '${this._md5(password)}' limit 1`)
                 .then((r) => {
 
@@ -27,39 +39,64 @@ class DBModel {
 }
 
 class MySQL {
-    _mysql = require('mysql');
-    _conn = this._mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "praxis"
-    });
 
-    async query(query) {
+    _mysql = require('mysql');
+    _conn;
+
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        this._dbConfig = dbConfig;
+        this.init();
+    }
+
+    init(){
+        this._conn = this._mysql.createConnection({
+            host: this._dbConfig.host,
+            user: this._dbConfig.user,
+            password: this._dbConfig.pass,
+            database: this._dbConfig.name
+        });
+    }
+
+    async query(query, params = []) {
         return new Promise((resolve, reject) => {
             this._conn.connect();
-            this._conn.query(query, function (error, results, fields) {
-                if (error) {
-                    reject(error)
-                } else {
-                    resolve(results)
-                }
-            });
+
+            if(params.length > 0){
+                this._conn.query(query, params, function (error, results, fields) {
+                    if (error) {
+                        reject(error)
+                    } else {
+                        resolve(results)
+                    }
+                });
+            }else{
+                this._conn.query(query, function (error, results, fields) {
+                    if (error) {
+                        reject(error)
+                    } else {
+                        resolve(results)
+                    }
+                });
+            }
+
             this._conn.end();
         })
     }
 
     async listTable({sql, page = 1, limit = 10}) {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this._conn.connect();
-            this._conn.query(sql, (error,results,fields) => {
-                if(error){
+            this._conn.query(sql, (error, results, fields) => {
+                if (error) {
                     reject(error)
-                }else{
+                } else {
                     let finalData = results;
 
-                    finalData = finalData.slice((page-1)*limit, limit*(page));
-                    const lastPage = Math.ceil(results.length/limit)
+                    finalData = finalData.slice((page - 1) * limit, limit * (page));
+                    const lastPage = Math.ceil(results.length / limit)
                     const response = {
                         current_page: page,
                         last_page: lastPage,
@@ -78,100 +115,36 @@ class User extends DBModel {
 
     constructor(
         {
-            id = 0,
-            username = "",
-            password = "",
-            active = false,
-            permissions = "",
-            created = "",
-            updated = ""
+            dbConfig = {},
         }) {
-        super();
-        this._id = id;
-        this._username = username;
-        this._password = password;
-        this._active = active;
-        this._permissions = permissions;
-        this._created = created;
-        this._updated = updated;
-
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    async create() {
-        return false;
-    }
 
-    get id() {
-        return this._id;
-    }
-
-    get username() {
-        return this._username;
-    }
-
-    get password() {
-        return this._password;
-    }
-
-    get active() {
-        return this._active;
-    }
-
-    get permissions() {
-        return this._permissions;
-    }
-
-    get created() {
-        return this._created;
-    }
-
-    get updated() {
-        return this._updated;
-    }
 }
 
 class Product extends DBModel {
-    get existence() {
-        return this._existence;
-    }
 
     constructor(
         {
-            id = 0,
-            sku = "",
-            category_id = 0,
-            currency_id = 0,
-            name = "",
-            price = 0.0,
-            existence = 0,
-            active = false,
-            created = "",
-            updated = "",
+            dbConfig = {},
         }) {
-        super();
-        this._id = id;
-        this._sku = sku;
-        this._category_id = category_id;
-        this._currency_id = currency_id;
-        this._name = name;
-        this._price = price;
-        this._active = active;
-        this._created = created;
-        this._updated = updated;
-        this._existence = existence;
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    async listTable({page = 1, limit = 10, search = ''}){
+    async listTable({page = 1, limit = 10, search = ''}) {
         return new Promise((resolve, reject) => {
             let sql;
-            if(search === ""){
+            if (search === "") {
                 sql = 'SELECT * FROM products order by id desc';
-            }else{
+            } else {
                 sql = `SELECT * FROM products WHERE (name like '%${search}%' or id like '%${search}%' or sku like '%${search}%') order by id desc`;
             }
 
-            const mysql = new MySQL();
-            mysql.listTable({sql:sql, page: page, limit: limit})
+            const mysql = new MySQL({dbConfig:this._dbConfig});
+            mysql.listTable({sql: sql, page: page, limit: limit})
                 .then((r) => {
                     resolve(r)
                 })
@@ -193,7 +166,7 @@ class Product extends DBModel {
 
             sql += `order by id desc LIMIT ${limit} OFFSET ${page - 1} `
 
-            const mysql = new MySQL();
+            const mysql = new MySQL({dbConfig:this._dbConfig});
 
             mysql.query(sql)
                 .then((r) => {
@@ -207,7 +180,7 @@ class Product extends DBModel {
     async create(productData) {
 
         return new Promise((resolve, reject) => {
-            const mysql = new MySQL();
+            const mysql = new MySQL({dbConfig:this._dbConfig});
             mysql.query(`
                     INSERT INTO products (sku, existence, category_id, currency_id, name, price, active, created) 
                     VALUES ('${productData.sku}', '${productData.existence}', '${productData.category_id}', 1, '${productData.name}', '${productData.price}', 1, NOW() )`)
@@ -218,63 +191,61 @@ class Product extends DBModel {
         });
     }
 
-    get id() {
-        return this._id;
+    async update(productData) {
+
+        return new Promise((resolve, reject) => {
+            const mysql = new MySQL({dbConfig:this._dbConfig});
+            mysql.query(`UPDATE products SET  name = ?, sku = ?, existence = ?, price = ?, category_id = ? WHERE id = ?`,
+                [productData.name, productData.sku, productData.existence, productData.price, productData.category_id, productData.id])
+                .then((r) => {
+                    resolve(r)
+                })
+                .catch((err) => reject(err));
+        });
     }
 
-    get sku() {
-        return this._sku;
+    async get(id) {
+
+        return new Promise((resolve, reject) => {
+            const mysql = new MySQL({dbConfig:this._dbConfig});
+            mysql.query(`SELECT * FROM products WHERE id = ?`, [id])
+                .then((r) => {
+                    resolve(r)
+                })
+                .catch((err) => reject(err));
+        });
     }
 
-    get category_id() {
-        return this._category_id;
+    async remove(id) {
+
+        return new Promise((resolve, reject) => {
+            const mysql = new MySQL({dbConfig:this._dbConfig});
+            mysql.query(`DELETE from products WHERE id = ?`, [id])
+                .then((r) => {
+                    resolve(r)
+                })
+                .catch((err) => reject(err));
+        });
     }
 
-    get currency_id() {
-        return this._currency_id;
-    }
 
-    get name() {
-        return this._name;
-    }
-
-    get price() {
-        return this._price;
-    }
-
-    get active() {
-        return this._active;
-    }
-
-    get created() {
-        return this._created;
-    }
-
-    get updated() {
-        return this._updated;
-    }
 }
 
 class Category extends DBModel {
 
-    constructor({
-                    id = 0,
-                    name = "",
-                    created = "",
-                    updated = ""
-                }) {
-        super();
-        this._id = id;
-        this._name = name;
-        this._created = created;
-        this._updated = updated;
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
     async listAll() {
 
         return new Promise((resolve, reject) => {
             let sql = 'SELECT * FROM categories ';
-            const mysql = new MySQL();
+            const mysql = new MySQL({dbConfig:this._dbConfig});
             mysql.query(sql)
                 .then((r) => {
                     resolve(r)
@@ -283,211 +254,55 @@ class Category extends DBModel {
         });
     }
 
-    get id() {
-        return this._id;
-    }
 
-    get name() {
-        return this._name;
-    }
-
-    get created() {
-        return this._created;
-    }
-
-    get updated() {
-        return this._updated;
-    }
 }
 
 class Currency extends DBModel {
-    constructor({
-                    id = 0,
-                    name = "",
-                    buy = "",
-                    sell = "",
-                    created = "",
-                    updated = "",
-                    active = false
-                }) {
-        super();
-        this._id = id;
-        this._name = name;
-        this._buy = buy;
-        this._sell = sell;
-        this._created = created;
-        this._updated = updated;
-        this._active = active;
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    get id() {
-        return this._id;
-    }
 
-    get name() {
-        return this._name;
-    }
-
-    get buy() {
-        return this._buy;
-    }
-
-    get sell() {
-        return this._sell;
-    }
-
-    get created() {
-        return this._created;
-    }
-
-    get updated() {
-        return this._updated;
-    }
-
-    get active() {
-        return this._active;
-    }
 }
 
 class Customer extends DBModel {
-    constructor({
-                    id = 0,
-                    name = "",
-                    document = "",
-                    document_type = "ci",
-                    phone = "",
-                    email = "",
-                    birthday = ""
-                }) {
-        super();
-        this._id = id;
-        this._name = name;
-        this._document = document;
-        this._document_type = document_type;
-        this._phone = phone;
-        this._email = email;
-        this._birthday = birthday;
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    get id() {
-        return this._id;
-    }
 
-    get name() {
-        return this._name;
-    }
-
-    get document() {
-        return this._document;
-    }
-
-    get document_type() {
-        return this._document_type;
-    }
-
-    get phone() {
-        return this._phone;
-    }
-
-    get email() {
-        return this._email;
-    }
-
-    get birthday() {
-        return this._birthday;
-    }
 }
 
 class Sell extends DBModel {
-    constructor({
-                    id = 0,
-                    user_id = 0,
-                    customer_id = 0,
-                    total = 0,
-                    total_tax = 0,
-                    created = "",
-                    updated = ""
-                }) {
-        super();
-        this._id = id;
-        this._user_id = user_id;
-        this._customer_id = customer_id;
-        this._total = total;
-        this._total_tax = total_tax;
-        this._created = created;
-        this._updated = updated;
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    get id() {
-        return this._id;
-    }
 
-    get user_id() {
-        return this._user_id;
-    }
-
-    get customer_id() {
-        return this._customer_id;
-    }
-
-    get total() {
-        return this._total;
-    }
-
-    get total_tax() {
-        return this._total_tax;
-    }
-
-    get created() {
-        return this._created;
-    }
-
-    get updated() {
-        return this._updated;
-    }
 }
 
 class SellDetails extends DBModel {
-    constructor({
-                    id = 0,
-                    sell_id = 0,
-                    product_id = 0,
-                    quantity = 0,
-                    tax_percent = 0,
-                    tax_value = 0
-                }) {
-        super();
-        this._id = id;
-        this._sell_id = sell_id;
-        this._product_id = product_id;
-        this._quantity = quantity;
-        this._tax_percent = tax_percent;
-        this._tax_value = tax_value;
+    constructor(
+        {
+            dbConfig = {},
+        }) {
+        super({dbConfig:dbConfig});
+        this._dbConfig = dbConfig;
     }
 
-    get id() {
-        return this._id;
-    }
 
-    get sell_id() {
-        return this._sell_id;
-    }
-
-    get product_id() {
-        return this._product_id;
-    }
-
-    get quantity() {
-        return this._quantity;
-    }
-
-    get tax_percent() {
-        return this._tax_percent;
-    }
-
-    get tax_value() {
-        return this._tax_value;
-    }
 }
 
 
